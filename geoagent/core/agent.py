@@ -31,7 +31,7 @@ from .analysis_agent import AnalysisAgent  # noqa: E402
 from .viz_agent import VizAgent  # noqa: E402
 from .planner import Planner  # noqa: E402
 from .context_agent import ContextAgent  # noqa: E402
-from .llm import get_default_llm  # noqa: E402
+from .llm import get_default_llm, get_llm  # noqa: E402
 from geoagent.catalogs.registry import get_collection_index  # noqa: E402
 
 
@@ -71,7 +71,13 @@ class GeoAgent:
             model: Specific model name
             catalogs: List of STAC catalog URLs to search
         """
-        self.llm = llm or get_default_llm()
+        if llm is not None:
+            self.llm = llm
+        elif provider is not None:
+            self.llm = get_llm(provider=provider, model=model)
+        else:
+            self.llm = get_default_llm()
+
         self.provider = provider
         self.model = model
         self.catalogs = catalogs or []

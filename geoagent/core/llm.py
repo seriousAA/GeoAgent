@@ -33,6 +33,11 @@ PROVIDERS: Dict[str, Dict[str, str]] = {
         "env_var": None,
         "package": "langchain-ollama",
     },
+    "bltai": {
+        "default_model": "gpt-4.1",
+        "env_var": "BltAI_API_Key",
+        "package": "langchain-openai",  # 复用 langchain-openai，无需额外安装
+    },
 }
 
 
@@ -128,6 +133,21 @@ def get_llm(
             temperature=temperature,
             **kwargs,
         )
+    elif provider == "bltai":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(
+                "langchain-openai is not installed. Run: pip install langchain-openai"
+            )
+        return ChatOpenAI(
+            model=resolved_model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            base_url="https://api.bltcy.ai/v1",  # 替换基础地址
+            api_key=os.getenv("BltAI_API_Key"),
+            **kwargs,
+        )
 
 
 def get_default_llm(temperature: float = 0.1, **kwargs) -> Any:
@@ -220,6 +240,8 @@ def get_available_providers() -> List[str]:
                 import langchain_google_genai  # noqa: F401
             elif name == "ollama":
                 import langchain_ollama  # noqa: F401
+            elif name == "bltai":
+                import langchain_openai  # noqa: F401
             available.append(name)
         except ImportError:
             pass

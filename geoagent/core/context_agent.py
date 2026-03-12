@@ -85,10 +85,17 @@ class ContextAgent:
                     prompt_query += f" (Time period: {start} to {end})"
 
             response = self.chain.invoke({"query": prompt_query})
-            answer_text = (
-                response.content if hasattr(response, "content") else str(response)
-            )
-
+            
+            raw_content = response.content if hasattr(response, "content") else response
+            if isinstance(raw_content, list):
+                answer_text = "".join(
+                    item["text"]
+                    for item in raw_content
+                    if isinstance(item, dict) and item.get("type") == "text" and "text" in item
+                )
+            else:
+                answer_text = str(raw_content)
+            
             viz_hints: Dict[str, Any] = {}
             if data and data.total_items > 0:
                 viz_hints = {
